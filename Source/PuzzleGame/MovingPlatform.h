@@ -24,6 +24,10 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	void Activate();
+
+	void DeActivate();
+
 public:
 	// Variables
 	
@@ -32,10 +36,13 @@ public:
 
 	UPROPERTY(EditAnywhere, Meta = (MakeEditWidget = true), Category = "Custom System")
 	FVector TargetLocation;
-
+	
+	UPROPERTY(EditAnywhere ,BlueprintReadWrite, Category =  "Custom System")
+	bool IsActivateMoving;
 private:
 	FVector GlobalStartLocation;
 	FVector GlobalTargetLocation;
 	float GlobalStartToTargetLengh;
+
 
 };
