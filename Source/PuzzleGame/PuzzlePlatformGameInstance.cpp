@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
+#include "MenuSystem./MainMenu.h"
 
 
 UPuzzlePlatformGameInstance::UPuzzlePlatformGameInstance(const FObjectInitializer& ObjectInitializer) 
@@ -23,28 +24,11 @@ void UPuzzlePlatformGameInstance::Init()
 void UPuzzlePlatformGameInstance::LoadMenu()
 {
 	if (!ensure(MenuClass != nullptr)) return;
-	UUserWidget* MainMenu = CreateWidget<UUserWidget>(this, MenuClass, FName(MenuClass->GetName()));
+	MainMenu = CreateWidget<UMainMenu>(this, MenuClass, FName(MenuClass->GetName()));
 
-	if (!ensure(MainMenu != nullptr)) return;
-	MainMenu->AddToViewport();
-	MainMenu->bIsFocusable = true;
-
-	FInputModeUIOnly InputModeData;
-	InputModeData.SetWidgetToFocus(MainMenu->TakeWidget()); // 매개변수 : 포커싱하고자 하는 위젯
-	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); 
-
-	APlayerController* PlayerController = GetFirstLocalPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
-	PlayerController->SetInputMode(InputModeData);
-	PlayerController->SetShowMouseCursor(true);
+	MainMenu->Setup();
 	
-	/*
-	다음 강의에서 다음과 같은 오류 메시지가 표시되는 경우:
-	LogPlayerController: 오류: InputMode:UIOnly - 포커스를 가질 수 없는 위젯 SObjectWidget [Widget.cpp(710)]에 포커스를 맞추려고 합니다!
-	다음 코드 라인을 추가해 보세요.
-	MainMenu->bIsFocusable = true;
-	*/
-	
+	MainMenu->SetMenuInterface(this);
 }
 
 void UPuzzlePlatformGameInstance::HostServer()
