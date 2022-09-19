@@ -2,6 +2,8 @@
 
 #include "MainMenu.h"
 #include "Components/Button.h"
+#include "Components/WidgetSwitcher.h"
+
 
 bool UMainMenu::Initialize() {
 	bool Success = Super::Initialize(); // 혹시 Initialize가 false를 반환 할 수 있으므로
@@ -10,6 +12,15 @@ bool UMainMenu::Initialize() {
 	// ToDo : SetUp
 	if (ensure(HostBtn == nullptr)) return false;
 	HostBtn->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
+
+	if (ensure(JoinBtn == nullptr)) return false;
+	JoinBtn->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
+
+	if (ensure(JoinMenu_JoinBtn == nullptr)) return false;
+	JoinMenu_JoinBtn->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
+
+	if (ensure(JoinMenu_CancelBtn == nullptr)) return false;
+	JoinMenu_CancelBtn->OnClicked.AddDynamic(this, &UMainMenu::JoinMenuCancel);
 
 	return true;
 }
@@ -24,6 +35,33 @@ void UMainMenu::HostServer()
 		UE_LOG(LogTemp, Warning, TEXT("MenuInterface == nullptr"));
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Host Server!!!"));
+}
+
+void UMainMenu::OpenJoinMenu()
+{
+	if (ensure(MenuSwitcher == nullptr)) return;
+	if (ensure(JoinMenu == nullptr)) return;
+
+	MenuSwitcher->SetActiveWidget(JoinMenu);
+}
+
+void UMainMenu::JoinServer()
+{
+	GEngine->AddOnScreenDebugMessage(1, 10, FColor::Blue, FString::Printf(TEXT("Joining s")));
+
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	/*if (PlayerController) {
+		PlayerController->ClientTravel()
+	}*/
+	return;
+}
+
+void UMainMenu::JoinMenuCancel()
+{
+	if (ensure(MenuSwitcher == nullptr)) return;
+	if (ensure(MainMenu == nullptr)) return;
+
+	MenuSwitcher->SetActiveWidget(MainMenu);
 }
 
 void UMainMenu::SetMenuInterface(IMenuInterface* MenuInterface_)
