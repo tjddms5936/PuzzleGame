@@ -47,6 +47,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* JoinMenu_CancelBtn;
 
+	UPROPERTY(meta = (BindWidget))
+	class UEditableText* IPAdressField;
+
 	UFUNCTION()
 	void HostServer();
 

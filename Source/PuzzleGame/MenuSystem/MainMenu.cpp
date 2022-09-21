@@ -3,7 +3,7 @@
 #include "MainMenu.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
-
+#include "Components/EditableText.h"
 
 bool UMainMenu::Initialize() {
 	bool Success = Super::Initialize(); // 혹시 Initialize가 false를 반환 할 수 있으므로
@@ -47,12 +47,17 @@ void UMainMenu::OpenJoinMenu()
 
 void UMainMenu::JoinServer()
 {
-	GEngine->AddOnScreenDebugMessage(1, 10, FColor::Blue, FString::Printf(TEXT("Joining s")));
-
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	/*if (PlayerController) {
-		PlayerController->ClientTravel()
-	}*/
+	if (MenuInterface != nullptr) {
+		//메모리 사용에 주의하고 싶을 땐 const로 선언
+		if (!ensure(IPAdressField != nullptr)) return;
+		const FString& IPAdress = IPAdressField->GetText().ToString();
+		MenuInterface->Join(IPAdress); // 순수가상함수 호출! 해당 함수는 어디서 구현되어 있을까?
+		TearDown();
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("MenuInterface == nullptr"));
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Join Server!!!"));
 	return;
 }
 

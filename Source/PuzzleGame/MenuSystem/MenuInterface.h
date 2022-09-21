@@ -29,4 +29,6 @@ public:
 		완전하게 상속받는 클래스에서만 구현하고 싶다면 순수가상함수로 만들어주어야 함.
 		순수가상함수는 위와같이 = 0 을 해주면 됨.
 	*/
+
+	virtual void Join(const FString& Address) = 0;
 };
