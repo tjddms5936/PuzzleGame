@@ -28,8 +28,13 @@ class PUZZLEGAME_API UPuzzlePlatformGameInstance : public UGameInstance, public 
 	UFUNCTION(Exec, BlueprintCallable)
 	void Join(const FString& Address);
 
+	UFUNCTION(Exec, BlueprintCallable)
+	void LoadCancelMenu();
+
 private:
 	TSubclassOf<class UUserWidget> MenuClass;
+
+	TSubclassOf<class UUserWidget> CancelMenuClass;
 
 	class UMainMenu* MainMenu;
 };
