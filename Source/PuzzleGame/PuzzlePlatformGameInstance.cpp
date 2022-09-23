@@ -8,7 +8,6 @@
 #include "MenuSystem./MainMenu.h"
 #include "MenuSystem/MenuWidget.h"
 
-
 UPuzzlePlatformGameInstance::UPuzzlePlatformGameInstance(const FObjectInitializer& ObjectInitializer) 
 {
 	static ConstructorHelpers::FClassFinder<UUserWidget> UserWidgetWBPClass(TEXT("/Game/MenuSystem/WBP_Menu"));
@@ -59,8 +58,33 @@ void UPuzzlePlatformGameInstance::LoadCancelMenu()
 {
 	if (!ensure(CancelMenuClass != nullptr)) return;
 	UMenuWidget* CancelMenu = CreateWidget<UMenuWidget>(this, CancelMenuClass, FName(CancelMenuClass->GetName()));
-
+	GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, FString::Printf(TEXT("CancelMenu Open")));
 	CancelMenu->Setup();
-	
+	CancelMenu->SetMenuInterface(this);
+}
+
+void UPuzzlePlatformGameInstance::CancelMenu()
+{
+	GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, FString::Printf(TEXT("CancelMenu Clicked in GameInstance")));
+}
+
+void UPuzzlePlatformGameInstance::QuitMenu()
+{
+	UWorld* World = GetWorld();
+	APlayerController* Controller = World->GetFirstPlayerController();
+	if (!ensure(Controller != nullptr)) return;
+	Controller->ClientTravel("/Game/Maps/Menu", ETravelType::TRAVEL_Absolute);
+
+	GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, FString::Printf(TEXT("QuitMenu Clicked in GameInstance")));
+}
+
+void UPuzzlePlatformGameInstance::ExitGameFunc()
+{
+	UWorld* World = GetWorld();
+	APlayerController* Controller = World->GetFirstPlayerController();
+	if (!ensure(Controller != nullptr)) return;
+
+	// 게임 실행 후 콘솔창에 quit하면 게임이 꺼진다. 그걸 C++로 구현
+	Controller->ConsoleCommand(FString("quit"));
 }
 

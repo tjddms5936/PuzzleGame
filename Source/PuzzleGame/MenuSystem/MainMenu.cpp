@@ -10,17 +10,20 @@ bool UMainMenu::Initialize() {
 	if (!Success) return false; 
 
 	// ToDo : SetUp
-	if (ensure(HostBtn == nullptr)) return false;
+	if (!ensure(HostBtn != nullptr)) return false;
 	HostBtn->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
 
-	if (ensure(JoinBtn == nullptr)) return false;
+	if (!ensure(JoinBtn != nullptr)) return false;
 	JoinBtn->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
 
-	if (ensure(JoinMenu_JoinBtn == nullptr)) return false;
+	if (!ensure(JoinMenu_JoinBtn != nullptr)) return false;
 	JoinMenu_JoinBtn->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
 
-	if (ensure(JoinMenu_CancelBtn == nullptr)) return false;
+	if (!ensure(JoinMenu_CancelBtn != nullptr)) return false;
 	JoinMenu_CancelBtn->OnClicked.AddDynamic(this, &UMainMenu::JoinMenuCancel);
+
+	if (!ensure(ExitBtn != nullptr)) return false;
+	ExitBtn->OnClicked.AddDynamic(this, &UMainMenu::ExitGame);
 
 	return true;
 }
@@ -63,10 +66,18 @@ void UMainMenu::JoinServer()
 
 void UMainMenu::JoinMenuCancel()
 {
-	if (ensure(MenuSwitcher == nullptr)) return;
-	if (ensure(MainMenu == nullptr)) return;
+	if (!ensure(MenuSwitcher != nullptr)) return;
+	if (!ensure(MainMenu != nullptr)) return;
 
 	MenuSwitcher->SetActiveWidget(MainMenu);
+}
+
+void UMainMenu::ExitGame()
+{
+	GEngine->AddOnScreenDebugMessage(1, 10, FColor::Black, FString::Printf(TEXT("Exit Game")));
+	if (!ensure(MenuInterface != nullptr)) return;
+	MenuInterface->ExitGameFunc();
+
 }
 
 

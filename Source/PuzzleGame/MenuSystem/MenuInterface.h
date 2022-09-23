@@ -31,4 +31,10 @@ public:
 	*/
 
 	virtual void Join(const FString& Address) = 0;
+
+	virtual void CancelMenu() = 0;
+
+	virtual void QuitMenu() = 0;
+
+	virtual void ExitGameFunc() = 0;
 };

@@ -29,6 +29,12 @@ private:
 	class UButton* JoinBtn;
 
 	UPROPERTY(meta = (BindWidget))
+	class UButton* ExitBtn;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* JoinMenu_CancelBtn;
+
+	UPROPERTY(meta = (BindWidget))
 	class UWidgetSwitcher* MenuSwitcher;
 
 	UPROPERTY(meta = (BindWidget))
@@ -37,27 +43,27 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UWidget* MainMenu;
 
-
 	UPROPERTY(meta = (BindWidget))
-	class UButton* JoinMenu_CancelBtn;
-
-
-	UFUNCTION()
-	void HostServer();
-
-	UFUNCTION()
-	void OpenJoinMenu();
-
-	UPROPERTY(meta = (BindWidget))
-	class UButton* JoinMenu_JoinBtn;
+	class UButton* JoinMenu_JoinBtn; 
 
 	UPROPERTY(meta = (BindWidget))
 	class UEditableText* IPAdressField;
 
-	UFUNCTION()
-	void JoinServer();
 
 	UFUNCTION()
-	void JoinMenuCancel();
+	void HostServer(); // HostBtn
+
+	UFUNCTION()
+	void OpenJoinMenu(); // JoinBtn
+
+	UFUNCTION()
+	void JoinServer(); // JoinMenu_JoinBtn
+
+	UFUNCTION()
+	void JoinMenuCancel(); // JoinMenu_CancelBtn
+
+	UFUNCTION()
+	void ExitGame(); // ExitBtn
+
 
 };

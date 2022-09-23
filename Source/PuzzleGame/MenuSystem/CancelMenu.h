@@ -21,4 +21,16 @@ public:
 
 
 private:
+	UPROPERTY(meta = (BindWidget))
+	class UButton* CancelBtn;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* QuitBtn;
+
+	UFUNCTION()
+	void CancelMenuFunc();
+
+	UFUNCTION()
+	void QuitMenuFunc();
+	
 };

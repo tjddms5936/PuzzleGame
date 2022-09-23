@@ -31,6 +31,15 @@ class PUZZLEGAME_API UPuzzlePlatformGameInstance : public UGameInstance, public 
 	UFUNCTION(Exec, BlueprintCallable)
 	void LoadCancelMenu();
 
+	UFUNCTION(Exec, BlueprintCallable)
+	void CancelMenu();
+
+	UFUNCTION(Exec, BlueprintCallable)
+	void QuitMenu();
+
+	UFUNCTION(Exec, BlueprintCallable)
+	void ExitGameFunc();
+
 private:
 	TSubclassOf<class UUserWidget> MenuClass;
 
