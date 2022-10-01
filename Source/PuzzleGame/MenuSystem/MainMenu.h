@@ -16,6 +16,7 @@ class PUZZLEGAME_API UMainMenu : public UMenuWidget
 	
 public:
 	
+	UMainMenu(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual bool Initialize();
@@ -47,8 +48,7 @@ private:
 	class UButton* JoinMenu_JoinBtn; 
 
 	UPROPERTY(meta = (BindWidget))
-	class UEditableText* IPAdressField;
-
+	class UPanelWidget* ServerScrollBox;
 
 	UFUNCTION()
 	void HostServer(); // HostBtn

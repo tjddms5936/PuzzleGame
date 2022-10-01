@@ -37,4 +37,6 @@ public:
 	virtual void QuitMenu() = 0;
 
 	virtual void ExitGameFunc() = 0;
+
+	virtual bool CallBackBool(bool input) = 0;
 };

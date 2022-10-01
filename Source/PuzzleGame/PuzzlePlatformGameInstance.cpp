@@ -8,6 +8,12 @@
 #include "MenuSystem./MainMenu.h"
 #include "MenuSystem/MenuWidget.h"
 
+#include "OnlineSessionSettings.h"
+#include "OnlineSubsystem.h"
+#include "Interfaces/OnlineSessionInterface.h"
+
+const static FName SESSION_NAME = TEXT("My session game");
+
 UPuzzlePlatformGameInstance::UPuzzlePlatformGameInstance(const FObjectInitializer& ObjectInitializer) 
 {
 	static ConstructorHelpers::FClassFinder<UUserWidget> UserWidgetWBPClass(TEXT("/Game/MenuSystem/WBP_Menu"));
@@ -23,6 +29,45 @@ void UPuzzlePlatformGameInstance::Init()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Found Class %s"), *MenuClass->GetName());
 	UE_LOG(LogTemp, Warning, TEXT("Found Class %s"), *CancelMenuClass->GetName());
+
+
+	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+
+
+	if (OnlineSubsystem != nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("Found OnlineSubsystem %s"), *OnlineSubsystem->GetSubsystemName().ToString());
+		SessionInterface = OnlineSubsystem->GetSessionInterface();
+		if (SessionInterface.IsValid()) {
+			UE_LOG(LogTemp, Warning, TEXT("Found SessionInterface"));
+			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnCreateSessionComplete);
+			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnDestroySessionComplete);
+			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnFindSessionComplete);
+
+			// ※ new 키워드는 힙에 무언가를 만든다.
+			SessionSearchPtr = MakeShareable(new FOnlineSessionSearch()); // TSharedPtr 을 얻고
+			if (SessionSearchPtr.IsValid()) {
+				UE_LOG(LogTemp, Warning, TEXT("Find Session Start"));
+
+				 SessionSearchPtr->bIsLanQuery = true; // 쿼리가 LAN 일치를 위한 것인지 여부.
+				/*
+				 false로 해도 문제는 없음 why?  쿼리 설정만 제거하는건 
+				// Lan일치와 Non-Lan 일치를 모두 찾을 것이기 때문이다.
+				*/
+
+				/*
+				SessionSearchPtr->QuerySettings.Set(~~)// Steam 얻을 때 사용할 것임. 
+				아이디어는 QuerySettings가 FOnlineSessionSearch의 API에 의해 정의되는 것이 아니라, 사용 중인 API에 의해 정의된다는 것이다.
+				*/
+
+				// TSharedRef로 변환해주고 매개변수에 넣어야함
+				SessionInterface->FindSessions(0, SessionSearchPtr.ToSharedRef());
+			}
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Found Failed OnlineSubsystem"));
+	}
+	
 }
 
 void UPuzzlePlatformGameInstance::LoadMenu()
@@ -37,12 +82,63 @@ void UPuzzlePlatformGameInstance::LoadMenu()
 
 void UPuzzlePlatformGameInstance::HostServer()
 {
+	if (SessionInterface.IsValid()) {
+		auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
+		if (ExistingSession != nullptr) {
+			// 이미 존재하는 Session이 있다면
+			SessionInterface->DestroySession(SESSION_NAME);
+		}
+		else {
+			// 존재하는 Session이 없다면
+			CreateSession();
+		}
+	}
+}
+
+void UPuzzlePlatformGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
+{
+	if (!Success) return;
+
+	For_CallBackBool = true;
 	// GetEngine() : GameInstance만의 메서드. 
 	GEngine->AddOnScreenDebugMessage(1, 10, FColor::Green, TEXT("Hosting"));
 	
 	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr)) return;
 	World->ServerTravel("/Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap?listen");
+}
+
+void UPuzzlePlatformGameInstance::OnDestroySessionComplete(FName SessionName, bool Success)
+{
+	if (Success) {
+		CreateSession();
+		UE_LOG(LogTemp, Warning, TEXT("Exsisted Session Destroy and New Session Create!!!"));
+	}
+}
+
+void UPuzzlePlatformGameInstance::OnFindSessionComplete(bool Success)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Find Session Complete!!"));
+	if (!Success && !SessionSearchPtr.IsValid()) return;
+
+	for (FOnlineSessionSearchResult& Result : SessionSearchPtr->SearchResults) {
+		UE_LOG(LogTemp, Warning, TEXT("Found Session Name : %s"), *Result.GetSessionIdStr());
+	}
+}
+
+void UPuzzlePlatformGameInstance::CreateSession()
+{
+	if (SessionInterface.IsValid()) {
+		FOnlineSessionSettings SessionSetting;
+
+		// 아래 3개의 작업을 해주지 않으면 찾을 수 있는 세션은 0개가 될 것이다.
+		SessionSetting.bIsLANMatch = true; // 이 게임은 LAN 전용이며 외부 플레이어에게 표시되지 않습니다.
+		SessionSetting.NumPublicConnections = 2; // 공지된 공개적으로 사용 가능한 연결 수  // NumPrivateConnections : 비공개(초대/비밀번호) 전용 연결 수
+		SessionSetting.bShouldAdvertise = true; // 온라인에서 세션을 볼 수 있도록 하는데, 이는 친구들에게 맞춤 초대장을 보내는 것을 광고를 통해 우회가능
+		// 세션 찾기를 호출 할 때의 쿼리 매개변수를 살펴보자 -> Go to Init() 에서 SessionSearch부분 보기
+
+		SessionInterface->CreateSession(0, SESSION_NAME, SessionSetting);
+	}
 }
 
 void UPuzzlePlatformGameInstance::Join(const FString& Address)
@@ -87,4 +183,15 @@ void UPuzzlePlatformGameInstance::ExitGameFunc()
 	// 게임 실행 후 콘솔창에 quit하면 게임이 꺼진다. 그걸 C++로 구현
 	Controller->ConsoleCommand(FString("quit"));
 }
+
+bool UPuzzlePlatformGameInstance::CallBackBool(bool input)
+{
+	if (For_CallBackBool) {
+		input = For_CallBackBool;
+	}
+	For_CallBackBool = false;
+	return input;
+}
+
+
 
