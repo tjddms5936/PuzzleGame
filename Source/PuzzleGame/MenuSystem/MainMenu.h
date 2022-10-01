@@ -65,5 +65,5 @@ private:
 	UFUNCTION()
 	void ExitGame(); // ExitBtn
 
-
+	TSubclassOf <class UUserWidget> ServerRowClass;
 };

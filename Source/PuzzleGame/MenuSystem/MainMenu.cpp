@@ -1,13 +1,21 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MainMenu.h"
+#include "UObject/ConstructorHelpers.h"
+
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableText.h"
 
+#include "ServerRow.h"
+
 UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
 {
-	
+	static ConstructorHelpers::FClassFinder<UUserWidget> ServerRowWBPClass(TEXT("/Game/MenuSystem/WPB_ServerRow"));
+	if (!ensure(ServerRowWBPClass.Class != nullptr)) return;
+	ServerRowClass = ServerRowWBPClass.Class;
+
+
 }
 
 
@@ -51,8 +59,8 @@ void UMainMenu::HostServer()
 
 void UMainMenu::OpenJoinMenu()
 {
-	if (ensure(MenuSwitcher == nullptr)) return;
-	if (ensure(JoinMenu == nullptr)) return;
+	if (!ensure(MenuSwitcher != nullptr)) return;
+	if (!ensure(JoinMenu != nullptr)) return;
 
 	MenuSwitcher->SetActiveWidget(JoinMenu);
 }
@@ -60,16 +68,27 @@ void UMainMenu::OpenJoinMenu()
 void UMainMenu::JoinServer()
 {
 	if (MenuInterface != nullptr) {
-		//메모리 사용에 주의하고 싶을 땐 const로 선언
-		//if (!ensure(IPAdressField != nullptr)) return;
-		//const FString& IPAdress = IPAdressField->GetText().ToString();
-		//MenuInterface->Join(IPAdress); // 순수가상함수 호출! 해당 함수는 어디서 구현되어 있을까?
-		TearDown();
+		UE_LOG(LogTemp, Warning, TEXT("Join Server!!!"));
+
+		UWorld* World = this->GetWorld();
+
+		if (!ensure(ServerRowClass != nullptr)) return;
+		UServerRow* ServerRow = CreateWidget<UServerRow>(World, ServerRowClass);
+
+		if (!ensure(ServerScrollBox != nullptr)) return;
+		ServerScrollBox->AddChild(ServerRow);
+
+		if (MenuInterface->CallBackBool(false)) {
+			// 서버 Join이 성공적으로 되면 반환값으로 true가 될 것임.
+			TearDown();
+		}
+		else {
+			GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, FString::Printf(TEXT("MenuInterface->CallBackBool(false) return false!")));
+		}
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("MenuInterface == nullptr"));
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Join Server!!!"));
 	return;
 }
 
