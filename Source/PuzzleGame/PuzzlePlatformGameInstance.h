@@ -66,4 +66,6 @@ private:
 	void CreateSession();
 
 	bool For_CallBackBool = false;
+
+	void ServerListRefresh();
 };

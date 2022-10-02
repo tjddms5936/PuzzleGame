@@ -18,6 +18,8 @@ public:
 	
 	UMainMenu(const FObjectInitializer& ObjectInitializer);
 
+	void SetServerList(TArray<FString> ServerNames);
+
 protected:
 	virtual bool Initialize();
 
@@ -65,5 +67,12 @@ private:
 	UFUNCTION()
 	void ExitGame(); // ExitBtn
 
+	UFUNCTION()
+	void SelectIndex(uint32 index);
+
 	TSubclassOf <class UUserWidget> ServerRowClass;
+
+	// 음수와 32부분 이상의 정수를 요하지 않으므로 uint32 사용
+	// TOptional의 좋은 점을 얻은 값이 null 값이 될 수도 있다는 것을 상기시켜줌
+	TOptional<uint32> SelectedIndex;
 };

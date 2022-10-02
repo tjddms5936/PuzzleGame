@@ -39,4 +39,6 @@ public:
 	virtual void ExitGameFunc() = 0;
 
 	virtual bool CallBackBool(bool input) = 0;
+
+	virtual void ServerListRefresh() = 0;
 };

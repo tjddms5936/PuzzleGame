@@ -8,6 +8,7 @@
 #include "Components/EditableText.h"
 
 #include "ServerRow.h"
+#include "Components/TextBlock.h"
 
 UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
 {
@@ -18,6 +19,27 @@ UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
 
 }
 
+
+void UMainMenu::SetServerList(TArray<FString> ServerNames)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SetServerList function called!"));
+	// JoinServer 함수에서 하던 작업 옮기기
+	UWorld* World = this->GetWorld();
+	if (!ensure(World != nullptr)) return;
+
+	if (ServerScrollBox != nullptr) {
+		ServerScrollBox->ClearChildren();
+	}
+	
+	for (const FString& ServerName : ServerNames) {
+		if (!ensure(ServerRowClass != nullptr)) return;
+		UServerRow* ServerRow = CreateWidget<UServerRow>(World, ServerRowClass);
+		ServerRow->ServerName->SetText(FText::FromString(ServerName));
+		if (!ensure(ServerScrollBox != nullptr)) return;
+		ServerScrollBox->AddChild(ServerRow);
+	}
+
+}
 
 bool UMainMenu::Initialize() {
 	bool Success = Super::Initialize(); // 혹시 Initialize가 false를 반환 할 수 있으므로
@@ -63,31 +85,23 @@ void UMainMenu::OpenJoinMenu()
 	if (!ensure(JoinMenu != nullptr)) return;
 
 	MenuSwitcher->SetActiveWidget(JoinMenu);
+	if (MenuInterface != nullptr) {
+		MenuInterface->ServerListRefresh();
+	}
 }
 
 void UMainMenu::JoinServer()
 {
-	if (MenuInterface != nullptr) {
-		UE_LOG(LogTemp, Warning, TEXT("Join Server!!!"));
-
-		UWorld* World = this->GetWorld();
-
-		if (!ensure(ServerRowClass != nullptr)) return;
-		UServerRow* ServerRow = CreateWidget<UServerRow>(World, ServerRowClass);
-
-		if (!ensure(ServerScrollBox != nullptr)) return;
-		ServerScrollBox->AddChild(ServerRow);
-
-		if (MenuInterface->CallBackBool(false)) {
-			// 서버 Join이 성공적으로 되면 반환값으로 true가 될 것임.
-			TearDown();
-		}
-		else {
-			GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, FString::Printf(TEXT("MenuInterface->CallBackBool(false) return false!")));
-		}
+	if (SelectedIndex.IsSet()) {
+		UE_LOG(LogTemp, Warning, TEXT("Selected Index %d"), SelectedIndex.GetValue());
 	}
 	else {
-		UE_LOG(LogTemp, Warning, TEXT("MenuInterface == nullptr"));
+		UE_LOG(LogTemp, Warning, TEXT("Selected Index isn't setted"));
+	}
+	if (MenuInterface != nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("Join Server!!!"));
+		MenuInterface->Join("");
+
 	}
 	return;
 }
@@ -106,6 +120,13 @@ void UMainMenu::ExitGame()
 	if (!ensure(MenuInterface != nullptr)) return;
 	MenuInterface->ExitGameFunc();
 
+}
+
+void UMainMenu::SelectIndex(uint32 index)
+{
+	// SelectedIndex에 할당하기 위해 TOptional을 역참조 할 필요는 없다.
+	// TOptional에는 등호 할당 연산자에 대한 오버로드가 있기 떄문이다.
+	SelectedIndex = index;
 }
 
 

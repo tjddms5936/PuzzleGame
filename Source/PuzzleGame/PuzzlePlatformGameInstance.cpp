@@ -42,26 +42,6 @@ void UPuzzlePlatformGameInstance::Init()
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnDestroySessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnFindSessionComplete);
-
-			// ※ new 키워드는 힙에 무언가를 만든다.
-			SessionSearchPtr = MakeShareable(new FOnlineSessionSearch()); // TSharedPtr 을 얻고
-			if (SessionSearchPtr.IsValid()) {
-				UE_LOG(LogTemp, Warning, TEXT("Find Session Start"));
-
-				 SessionSearchPtr->bIsLanQuery = true; // 쿼리가 LAN 일치를 위한 것인지 여부.
-				/*
-				 false로 해도 문제는 없음 why?  쿼리 설정만 제거하는건 
-				// Lan일치와 Non-Lan 일치를 모두 찾을 것이기 때문이다.
-				*/
-
-				/*
-				SessionSearchPtr->QuerySettings.Set(~~)// Steam 얻을 때 사용할 것임. 
-				아이디어는 QuerySettings가 FOnlineSessionSearch의 API에 의해 정의되는 것이 아니라, 사용 중인 API에 의해 정의된다는 것이다.
-				*/
-
-				// TSharedRef로 변환해주고 매개변수에 넣어야함
-				SessionInterface->FindSessions(0, SessionSearchPtr.ToSharedRef());
-			}
 		}
 	}
 	else {
@@ -73,11 +53,11 @@ void UPuzzlePlatformGameInstance::Init()
 void UPuzzlePlatformGameInstance::LoadMenu()
 {
 	if (!ensure(MenuClass != nullptr)) return;
-	UMenuWidget* MainMenu_ = CreateWidget<UMenuWidget>(this, MenuClass, FName(MenuClass->GetName()));
+	MainMenu = CreateWidget<UMainMenu>(this, MenuClass, FName(MenuClass->GetName()));
 
-	MainMenu_->Setup();
+	MainMenu->Setup();
 
-	MainMenu_->SetMenuInterface(this);
+	MainMenu->SetMenuInterface(this);
 }
 
 void UPuzzlePlatformGameInstance::HostServer()
@@ -119,11 +99,16 @@ void UPuzzlePlatformGameInstance::OnDestroySessionComplete(FName SessionName, bo
 void UPuzzlePlatformGameInstance::OnFindSessionComplete(bool Success)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Find Session Complete!!"));
-	if (!Success && !SessionSearchPtr.IsValid()) return;
+	if (!Success && !SessionSearchPtr.IsValid() && MainMenu == nullptr) return;
+
+	TArray<FString> ServerNames;
 
 	for (FOnlineSessionSearchResult& Result : SessionSearchPtr->SearchResults) {
 		UE_LOG(LogTemp, Warning, TEXT("Found Session Name : %s"), *Result.GetSessionIdStr());
+		ServerNames.Add(Result.GetSessionIdStr());
 	}
+
+	MainMenu->SetServerList(ServerNames);
 }
 
 void UPuzzlePlatformGameInstance::CreateSession()
@@ -141,13 +126,44 @@ void UPuzzlePlatformGameInstance::CreateSession()
 	}
 }
 
+void UPuzzlePlatformGameInstance::ServerListRefresh()
+{
+	// ※ new 키워드는 힙에 무언가를 만든다.
+	SessionSearchPtr = MakeShareable(new FOnlineSessionSearch()); // TSharedPtr 을 얻고
+	if (SessionSearchPtr.IsValid()) {
+		UE_LOG(LogTemp, Warning, TEXT("Find Session Start"));
+
+		SessionSearchPtr->bIsLanQuery = true; // 쿼리가 LAN 일치를 위한 것인지 여부.
+	   /*
+		false로 해도 문제는 없음 why?  쿼리 설정만 제거하는건
+	   // Lan일치와 Non-Lan 일치를 모두 찾을 것이기 때문이다.
+	   */
+
+	   /*
+	   SessionSearchPtr->QuerySettings.Set(~~)// Steam 얻을 때 사용할 것임.
+	   아이디어는 QuerySettings가 FOnlineSessionSearch의 API에 의해 정의되는 것이 아니라, 사용 중인 API에 의해 정의된다는 것이다.
+	   */
+
+	   // TSharedRef로 변환해주고 매개변수에 넣어야함
+		SessionInterface->FindSessions(0, SessionSearchPtr.ToSharedRef());
+	}
+
+	/*if (MainMenu != nullptr) {
+		MainMenu->SetServerList({ "Test1", "Test2" });
+	}*/
+}
+
 void UPuzzlePlatformGameInstance::Join(const FString& Address)
 {
-	GEngine->AddOnScreenDebugMessage(1, 10, FColor::Black, FString::Printf(TEXT("Joining %s"), *Address));
+	if (MainMenu != nullptr) {
+		// MainMenu->TearDown();
+	}
+
+	/*GEngine->AddOnScreenDebugMessage(1, 10, FColor::Black, FString::Printf(TEXT("Joining %s"), *Address));
 
 	APlayerController* PlayerController = GetFirstLocalPlayerController();
 	if (!ensure(PlayerController != nullptr)) return;
-	PlayerController->ClientTravel(*Address, ETravelType::TRAVEL_Absolute);
+	PlayerController->ClientTravel(*Address, ETravelType::TRAVEL_Absolute);*/
 	
 	For_CallBackBool = true;
 }
