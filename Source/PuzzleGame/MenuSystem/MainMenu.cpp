@@ -6,9 +6,9 @@
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableText.h"
+#include "Components/TextBlock.h"
 
 #include "ServerRow.h"
-#include "Components/TextBlock.h"
 
 UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
 {
@@ -22,7 +22,6 @@ UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
 
 void UMainMenu::SetServerList(TArray<FString> ServerNames)
 {
-	UE_LOG(LogTemp, Warning, TEXT("SetServerList function called!"));
 	// JoinServer 함수에서 하던 작업 옮기기
 	UWorld* World = this->GetWorld();
 	if (!ensure(World != nullptr)) return;
@@ -31,10 +30,15 @@ void UMainMenu::SetServerList(TArray<FString> ServerNames)
 		ServerScrollBox->ClearChildren();
 	}
 	
+	uint32 index = 0;
 	for (const FString& ServerName : ServerNames) {
 		if (!ensure(ServerRowClass != nullptr)) return;
 		UServerRow* ServerRow = CreateWidget<UServerRow>(World, ServerRowClass);
 		ServerRow->ServerName->SetText(FText::FromString(ServerName));
+		
+		ServerRow->Setup(this, index);
+		++index;
+
 		if (!ensure(ServerScrollBox != nullptr)) return;
 		ServerScrollBox->AddChild(ServerRow);
 	}
@@ -92,16 +96,12 @@ void UMainMenu::OpenJoinMenu()
 
 void UMainMenu::JoinServer()
 {
-	if (SelectedIndex.IsSet()) {
+	if (SelectedIndex.IsSet() && MenuInterface != nullptr) {
 		UE_LOG(LogTemp, Warning, TEXT("Selected Index %d"), SelectedIndex.GetValue());
+		MenuInterface->Join(SelectedIndex.GetValue());
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("Selected Index isn't setted"));
-	}
-	if (MenuInterface != nullptr) {
-		UE_LOG(LogTemp, Warning, TEXT("Join Server!!!"));
-		MenuInterface->Join("");
-
 	}
 	return;
 }

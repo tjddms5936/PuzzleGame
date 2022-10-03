@@ -42,6 +42,7 @@ void UPuzzlePlatformGameInstance::Init()
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnDestroySessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnFindSessionComplete);
+			// SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnJoinSessionComplete);
 		}
 	}
 	else {
@@ -111,6 +112,20 @@ void UPuzzlePlatformGameInstance::OnFindSessionComplete(bool Success)
 	MainMenu->SetServerList(ServerNames);
 }
 
+void UPuzzlePlatformGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+{
+}
+
+//void UPuzzlePlatformGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+//{
+//	SessionName = SESSION_NAME;
+//	GEngine->AddOnScreenDebugMessage(1, 10, FColor::Black, FString::Printf(TEXT("Joining %s"), *SessionName.ToString()));
+//
+//	APlayerController* PlayerController = GetFirstLocalPlayerController();
+//	if (!ensure(PlayerController != nullptr)) return;
+//	PlayerController->ClientTravel(*SessionName.ToString(), ETravelType::TRAVEL_Absolute);
+//}
+
 void UPuzzlePlatformGameInstance::CreateSession()
 {
 	if (SessionInterface.IsValid()) {
@@ -148,16 +163,22 @@ void UPuzzlePlatformGameInstance::ServerListRefresh()
 		SessionInterface->FindSessions(0, SessionSearchPtr.ToSharedRef());
 	}
 
-	/*if (MainMenu != nullptr) {
+	if (MainMenu != nullptr) {
 		MainMenu->SetServerList({ "Test1", "Test2" });
-	}*/
+	}
 }
 
-void UPuzzlePlatformGameInstance::Join(const FString& Address)
+void UPuzzlePlatformGameInstance::Join(uint32 index)
 {
+	if (!SessionInterface.IsValid()) return;
+	if (!SessionSearchPtr.IsValid()) return;
+
 	if (MainMenu != nullptr) {
-		// MainMenu->TearDown();
+		MainMenu->TearDown();
 	}
+
+	// SessionInterface->JoinSession(0, SESSION_NAME, SessionSearchPtr->SearchResults[index]);
+
 
 	/*GEngine->AddOnScreenDebugMessage(1, 10, FColor::Black, FString::Printf(TEXT("Joining %s"), *Address));
 
