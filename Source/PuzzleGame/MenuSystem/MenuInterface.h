@@ -30,7 +30,7 @@ public:
 		순수가상함수는 위와같이 = 0 을 해주면 됨.
 	*/
 
-	virtual void Join(uint32 index) = 0;
+	virtual void Join(int index) = 0;
 
 	virtual void CancelMenu() = 0;
 

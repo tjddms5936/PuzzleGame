@@ -9,5 +9,7 @@ public class PuzzleGame : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "UMG", "OnlineSubsystem" });
+
+		PrivateIncludePaths.Add("PuzzleGame");
 	}
 }

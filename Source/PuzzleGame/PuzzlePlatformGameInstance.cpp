@@ -2,6 +2,7 @@
 
 
 #include "PuzzlePlatformGameInstance.h"
+
 #include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
@@ -10,7 +11,6 @@
 
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
-#include "Interfaces/OnlineSessionInterface.h"
 
 const static FName SESSION_NAME = TEXT("My session game");
 
@@ -27,8 +27,8 @@ UPuzzlePlatformGameInstance::UPuzzlePlatformGameInstance(const FObjectInitialize
 
 void UPuzzlePlatformGameInstance::Init()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Found Class %s"), *MenuClass->GetName());
-	UE_LOG(LogTemp, Warning, TEXT("Found Class %s"), *CancelMenuClass->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("222222222222222222222222222Found Class Class Found Class %s!!!!!!!!!!!!!!"), *MenuClass->GetName());
+	// UE_LOG(LogTemp, Warning, TEXT("Found Class %s"), *CancelMenuClass->GetName());
 
 
 	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
@@ -42,11 +42,11 @@ void UPuzzlePlatformGameInstance::Init()
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnDestroySessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnFindSessionComplete);
-			// SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnJoinSessionComplete);
+			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformGameInstance::OnJoinSessionComplete);
 		}
 	}
 	else {
-		UE_LOG(LogTemp, Warning, TEXT("Found Failed OnlineSubsystem"));
+		// UE_LOG(LogTemp, Warning, TEXT("Found Failed OnlineSubsystem"));
 	}
 	
 }
@@ -114,17 +114,21 @@ void UPuzzlePlatformGameInstance::OnFindSessionComplete(bool Success)
 
 void UPuzzlePlatformGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
+	if (!SessionInterface.IsValid()) return;
+
+	FString Address;
+
+	if (!SessionInterface->GetResolvedConnectString(SessionName, Address)) {
+		UE_LOG(LogTemp, Warning, TEXT("Could not get connect string"));
+		return;
+	}
+	GEngine->AddOnScreenDebugMessage(1, 10, FColor::Black, FString::Printf(TEXT("Joining %s"), *Address));
+	APlayerController* PlayerController = GetFirstLocalPlayerController();
+	if (!ensure(PlayerController != nullptr)) return;
+	PlayerController->ClientTravel(*Address, ETravelType::TRAVEL_Absolute);
+	
 }
 
-//void UPuzzlePlatformGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
-//{
-//	SessionName = SESSION_NAME;
-//	GEngine->AddOnScreenDebugMessage(1, 10, FColor::Black, FString::Printf(TEXT("Joining %s"), *SessionName.ToString()));
-//
-//	APlayerController* PlayerController = GetFirstLocalPlayerController();
-//	if (!ensure(PlayerController != nullptr)) return;
-//	PlayerController->ClientTravel(*SessionName.ToString(), ETravelType::TRAVEL_Absolute);
-//}
 
 void UPuzzlePlatformGameInstance::CreateSession()
 {
@@ -168,7 +172,7 @@ void UPuzzlePlatformGameInstance::ServerListRefresh()
 	}
 }
 
-void UPuzzlePlatformGameInstance::Join(uint32 index)
+void UPuzzlePlatformGameInstance::Join(int index)
 {
 	if (!SessionInterface.IsValid()) return;
 	if (!SessionSearchPtr.IsValid()) return;
@@ -176,17 +180,10 @@ void UPuzzlePlatformGameInstance::Join(uint32 index)
 	if (MainMenu != nullptr) {
 		MainMenu->TearDown();
 	}
-
-	// SessionInterface->JoinSession(0, SESSION_NAME, SessionSearchPtr->SearchResults[index]);
-
-
-	/*GEngine->AddOnScreenDebugMessage(1, 10, FColor::Black, FString::Printf(TEXT("Joining %s"), *Address));
-
-	APlayerController* PlayerController = GetFirstLocalPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
-	PlayerController->ClientTravel(*Address, ETravelType::TRAVEL_Absolute);*/
 	
 	For_CallBackBool = true;
+
+	SessionInterface->JoinSession(0, SESSION_NAME, SessionSearchPtr->SearchResults[index]);
 }
 
 void UPuzzlePlatformGameInstance::LoadCancelMenu()

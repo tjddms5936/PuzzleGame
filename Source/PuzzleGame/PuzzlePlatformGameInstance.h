@@ -28,7 +28,7 @@ class PUZZLEGAME_API UPuzzlePlatformGameInstance : public UGameInstance, public 
 	void HostServer();
 
 	UFUNCTION(Exec, BlueprintCallable)
-	void Join(uint32 index);
+	void Join(int index);
 
 	UFUNCTION(Exec, BlueprintCallable)
 	void LoadCancelMenu();
@@ -57,6 +57,8 @@ private:
 	IOnlineSessionPtr SessionInterface;
 
 	TSharedPtr<class FOnlineSessionSearch> SessionSearchPtr; // Default 값으로 nullptr을 가리킨다.
+
+
 
 	void OnCreateSessionComplete(FName SessionName, bool Success);
 
