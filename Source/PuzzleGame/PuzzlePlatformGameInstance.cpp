@@ -136,11 +136,12 @@ void UPuzzlePlatformGameInstance::CreateSession()
 		FOnlineSessionSettings SessionSetting;
 
 		// 아래 3개의 작업을 해주지 않으면 찾을 수 있는 세션은 0개가 될 것이다.
-		SessionSetting.bIsLANMatch = true; // 이 게임은 LAN 전용이며 외부 플레이어에게 표시되지 않습니다.
+		SessionSetting.bIsLANMatch = false; // 이 게임은 LAN 전용이며 외부 플레이어에게 표시되지 않습니다.
 		SessionSetting.NumPublicConnections = 2; // 공지된 공개적으로 사용 가능한 연결 수  // NumPrivateConnections : 비공개(초대/비밀번호) 전용 연결 수
 		SessionSetting.bShouldAdvertise = true; // 온라인에서 세션을 볼 수 있도록 하는데, 이는 친구들에게 맞춤 초대장을 보내는 것을 광고를 통해 우회가능
 		// 세션 찾기를 호출 할 때의 쿼리 매개변수를 살펴보자 -> Go to Init() 에서 SessionSearch부분 보기
-
+		SessionSetting.bUsesPresence = true;
+		SessionSetting.bUseLobbiesIfAvailable = true;
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSetting);
 	}
 }
@@ -164,11 +165,12 @@ void UPuzzlePlatformGameInstance::ServerListRefresh()
 	   */
 
 	   // TSharedRef로 변환해주고 매개변수에 넣어야함
-		SessionInterface->FindSessions(0, SessionSearchPtr.ToSharedRef());
-	}
+	
+		// Set함수 : SEARCH_PRESENCE(key)를 true(value)로 설정.
+		SessionSearchPtr->MaxSearchResults = 100; // Defaults값이 없어서 설정하지 않으면 자신의 게임은 찾을 수가 없음
+		SessionSearchPtr->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
-	if (MainMenu != nullptr) {
-		MainMenu->SetServerList({ "Test1", "Test2" });
+		SessionInterface->FindSessions(0, SessionSearchPtr.ToSharedRef());
 	}
 }
 
