@@ -99,7 +99,6 @@ void UPuzzlePlatformGameInstance::OnDestroySessionComplete(FName SessionName, bo
 
 void UPuzzlePlatformGameInstance::OnFindSessionComplete(bool Success)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Find Session Complete!!"));
 	if (!Success && !SessionSearchPtr.IsValid() && MainMenu == nullptr) return;
 
 	TArray<FString> ServerNames;
@@ -110,6 +109,7 @@ void UPuzzlePlatformGameInstance::OnFindSessionComplete(bool Success)
 	}
 
 	MainMenu->SetServerList(ServerNames);
+	UE_LOG(LogTemp, Warning, TEXT("Find Session Complete!!"));
 }
 
 void UPuzzlePlatformGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
@@ -136,7 +136,7 @@ void UPuzzlePlatformGameInstance::CreateSession()
 		FOnlineSessionSettings SessionSetting;
 
 		// 아래 3개의 작업을 해주지 않으면 찾을 수 있는 세션은 0개가 될 것이다.
-		SessionSetting.bIsLANMatch = false; // 이 게임은 LAN 전용이며 외부 플레이어에게 표시되지 않습니다.
+		SessionSetting.bIsLANMatch = true; // 이 게임은 LAN 전용이며 외부 플레이어에게 표시되지 않습니다.
 		SessionSetting.NumPublicConnections = 2; // 공지된 공개적으로 사용 가능한 연결 수  // NumPrivateConnections : 비공개(초대/비밀번호) 전용 연결 수
 		SessionSetting.bShouldAdvertise = true; // 온라인에서 세션을 볼 수 있도록 하는데, 이는 친구들에게 맞춤 초대장을 보내는 것을 광고를 통해 우회가능
 		// 세션 찾기를 호출 할 때의 쿼리 매개변수를 살펴보자 -> Go to Init() 에서 SessionSearch부분 보기
