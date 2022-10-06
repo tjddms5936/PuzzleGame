@@ -23,6 +23,9 @@ public:
 	UFUNCTION()
 	void Setup(class UMainMenu* InParent, uint32 Inindex);
 
+	UPROPERTY(BlueprintReadOnly)
+	bool IsSelected = false;
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* ServerBtn;
@@ -34,4 +37,5 @@ private:
 
 	UFUNCTION()
 	void OnClicked();
+
 };

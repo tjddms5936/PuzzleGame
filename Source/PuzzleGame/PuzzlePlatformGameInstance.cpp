@@ -108,6 +108,9 @@ void UPuzzlePlatformGameInstance::OnFindSessionComplete(bool Success)
 		ServerNames.Add(Result.GetSessionIdStr());
 	}
 
+	ServerNames.Add("11111111111111");
+	ServerNames.Add("22222222222222");
+	ServerNames.Add("33333333333333");
 	MainMenu->SetServerList(ServerNames);
 	UE_LOG(LogTemp, Warning, TEXT("Find Session Complete!!"));
 }
@@ -136,12 +139,12 @@ void UPuzzlePlatformGameInstance::CreateSession()
 		FOnlineSessionSettings SessionSetting;
 
 		// 아래 3개의 작업을 해주지 않으면 찾을 수 있는 세션은 0개가 될 것이다.
-		SessionSetting.bIsLANMatch = true; // 이 게임은 LAN 전용이며 외부 플레이어에게 표시되지 않습니다.
+		SessionSetting.bIsLANMatch = false; // 이 게임은 LAN 전용이며 외부 플레이어에게 표시되지 않습니다.
 		SessionSetting.NumPublicConnections = 2; // 공지된 공개적으로 사용 가능한 연결 수  // NumPrivateConnections : 비공개(초대/비밀번호) 전용 연결 수
 		SessionSetting.bShouldAdvertise = true; // 온라인에서 세션을 볼 수 있도록 하는데, 이는 친구들에게 맞춤 초대장을 보내는 것을 광고를 통해 우회가능
 		// 세션 찾기를 호출 할 때의 쿼리 매개변수를 살펴보자 -> Go to Init() 에서 SessionSearch부분 보기
-		SessionSetting.bUsesPresence = true;
-		SessionSetting.bUseLobbiesIfAvailable = true;
+		SessionSetting.bUsesPresence = true; // Lobby로 조인하기 위한 조건
+		SessionSetting.bUseLobbiesIfAvailable = true; // Lobby로 CreateSession을 하기 위한 조건
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSetting);
 	}
 }
@@ -153,7 +156,7 @@ void UPuzzlePlatformGameInstance::ServerListRefresh()
 	if (SessionSearchPtr.IsValid()) {
 		UE_LOG(LogTemp, Warning, TEXT("Find Session Start"));
 
-		SessionSearchPtr->bIsLanQuery = true; // 쿼리가 LAN 일치를 위한 것인지 여부.
+		SessionSearchPtr->bIsLanQuery = false; // 쿼리가 LAN 일치를 위한 것인지 여부.
 	   /*
 		false로 해도 문제는 없음 why?  쿼리 설정만 제거하는건
 	   // Lan일치와 Non-Lan 일치를 모두 찾을 것이기 때문이다.
@@ -169,6 +172,13 @@ void UPuzzlePlatformGameInstance::ServerListRefresh()
 		// Set함수 : SEARCH_PRESENCE(key)를 true(value)로 설정.
 		SessionSearchPtr->MaxSearchResults = 100; // Defaults값이 없어서 설정하지 않으면 자신의 게임은 찾을 수가 없음
 		SessionSearchPtr->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+		bool testing = false;
+		if (SessionSearchPtr->QuerySettings.Get(SEARCH_PRESENCE, testing) && testing) {
+			UE_LOG(LogTemp, Warning, TEXT("testing changes to true"));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("testing  not changes to true. still false"));
+		}
 
 		SessionInterface->FindSessions(0, SessionSearchPtr.ToSharedRef());
 	}

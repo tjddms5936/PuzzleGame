@@ -70,6 +70,9 @@ private:
 	UFUNCTION()
 	void ExitGame(); // ExitBtn
 
+	UFUNCTION()
+	void UpdateChildren();
+
 
 	TSubclassOf <class UUserWidget> ServerRowClass;
 

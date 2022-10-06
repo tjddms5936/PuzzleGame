@@ -7,6 +7,7 @@
 #include "Components/Button.h"
 
 
+
 void UServerRow::Setup(UMainMenu* InParent, uint32 Inindex)
 {
 	Parent = InParent;

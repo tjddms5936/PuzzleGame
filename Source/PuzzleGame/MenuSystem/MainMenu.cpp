@@ -122,11 +122,24 @@ void UMainMenu::ExitGame()
 
 }
 
+
 void UMainMenu::SelectIndex(uint32 index)
 {
 	// SelectedIndex에 할당하기 위해 TOptional을 역참조 할 필요는 없다.
 	// TOptional에는 등호 할당 연산자에 대한 오버로드가 있기 떄문이다.
 	SelectedIndex = index;
+
+	UpdateChildren();
 }
 
+void UMainMenu::UpdateChildren()
+{
+	for (int i = 0; i < ServerScrollBox->GetChildrenCount(); i++) {
+		UServerRow* Row = Cast<UServerRow>(ServerScrollBox->GetChildAt(i));
+		if (Row) {
+			// 단락 연산자 사용 : 왼쪽이 false라면 뒤에것 상관없이 false 반환. true라면 뒤에것에 따라서 반환
+			Row->IsSelected = (SelectedIndex.IsSet() && SelectedIndex.GetValue() == i);
+		}
+	}
+}
 
