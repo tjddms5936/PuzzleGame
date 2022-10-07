@@ -16,15 +16,29 @@ class PUZZLEGAME_API UServerRow : public UUserWidget
 
 
 protected:
+	virtual bool Initialize();
+
 public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ServerName;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* HostName;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* PlayerNum;
 
 	UFUNCTION()
 	void Setup(class UMainMenu* InParent, uint32 Inindex);
 
 	UPROPERTY(BlueprintReadOnly)
 	bool IsSelected = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Custom Setting")
+	bool IsTitle = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Custom Setting")
+	int32 TextSize = 15;
 
 private:
 	UPROPERTY(meta = (BindWidget))

@@ -6,6 +6,24 @@
 #include "MenuWidget.h"
 #include "MainMenu.generated.h"
 
+USTRUCT(BlueprintType)
+struct FServerData
+{
+	GENERATED_BODY()
+
+public:
+	FServerData() {
+		ServerName = "Null";
+		CurrenctPlayers = 0;
+		MaxPlayers = 0;
+	}
+	FString ServerName;
+	uint16 CurrenctPlayers;
+	uint16 MaxPlayers;
+	FString HostUserName;
+
+};
+
 /**
  * 
  */
@@ -18,7 +36,7 @@ public:
 	
 	UMainMenu(const FObjectInitializer& ObjectInitializer);
 
-	void SetServerList(TArray<FString> ServerNames);
+	void SetServerList(TArray<FServerData> ServerNames);
 
 	UFUNCTION()
 	void SelectIndex(uint32 index);
@@ -37,23 +55,36 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* ExitBtn;
 	
-	UPROPERTY(meta = (BindWidget))
-	class UButton* JoinMenu_CancelBtn;
 
 	UPROPERTY(meta = (BindWidget))
 	class UWidgetSwitcher* MenuSwitcher;
 
 	UPROPERTY(meta = (BindWidget))
+	class UWidget* MainMenu;
+
+	UPROPERTY(meta = (BindWidget))
+	class UWidget* HostMenu;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* HostMenu_HostBtn;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* HostMenu_CancelBtn;
+
+	UPROPERTY(meta = (BindWidget))
 	class UWidget* JoinMenu;
 
 	UPROPERTY(meta = (BindWidget))
-	class UWidget* MainMenu;
+	class UButton* JoinMenu_CancelBtn;
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* JoinMenu_JoinBtn; 
 
 	UPROPERTY(meta = (BindWidget))
 	class UPanelWidget* ServerScrollBox;
+
+	UFUNCTION()
+	void OpenHostMenu(); // HostBtn
 
 	UFUNCTION()
 	void HostServer(); // HostBtn
@@ -65,7 +96,7 @@ private:
 	void JoinServer(); // JoinMenu_JoinBtn
 
 	UFUNCTION()
-	void JoinMenuCancel(); // JoinMenu_CancelBtn
+	void MenuCancel(); // JoinMenu_CancelBtn, HostMenu_CancelBtn
 
 	UFUNCTION()
 	void ExitGame(); // ExitBtn

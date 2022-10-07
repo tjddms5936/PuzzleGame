@@ -22,6 +22,7 @@ public:
 
 	void TearDown();
 
+
 protected:
 	IMenuInterface* MenuInterface;
 };

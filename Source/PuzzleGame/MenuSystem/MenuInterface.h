@@ -23,7 +23,7 @@ class PUZZLEGAME_API IMenuInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	// 순수가상함수 생성
-	virtual void HostServer() = 0;
+	virtual void HostServer(FString ServerName) = 0;
 	/**
 		만약 virtual void Host(); 만 해놓으면 몸체만이라도 함수를 구현해야 함 
 		완전하게 상속받는 클래스에서만 구현하고 싶다면 순수가상함수로 만들어주어야 함.

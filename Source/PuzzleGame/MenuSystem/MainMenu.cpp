@@ -9,6 +9,7 @@
 #include "Components/TextBlock.h"
 
 #include "ServerRow.h"
+#define LOCTEXT_NAMESPACE "MyNamespace"
 
 UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
 {
@@ -20,7 +21,7 @@ UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
 }
 
 
-void UMainMenu::SetServerList(TArray<FString> ServerNames)
+void UMainMenu::SetServerList(TArray<FServerData> ServerNames)
 {
 	// JoinServer 함수에서 하던 작업 옮기기
 	UWorld* World = this->GetWorld();
@@ -31,10 +32,12 @@ void UMainMenu::SetServerList(TArray<FString> ServerNames)
 	}
 	
 	uint32 index = 0;
-	for (const FString& ServerName : ServerNames) {
+	for (const FServerData& ServerData : ServerNames) {
 		if (!ensure(ServerRowClass != nullptr)) return;
 		UServerRow* ServerRow = CreateWidget<UServerRow>(World, ServerRowClass);
-		ServerRow->ServerName->SetText(FText::FromString(ServerName));
+		ServerRow->ServerName->SetText(FText::FromString(ServerData.ServerName));
+		ServerRow->HostName->SetText(FText::FromString(ServerData.HostUserName));
+		ServerRow->PlayerNum->SetText(FText::Format(LOCTEXT("Example", "{0}/{1}"), ServerData.CurrenctPlayers, ServerData.MaxPlayers));
 		
 		ServerRow->Setup(this, index);
 		++index;
@@ -51,7 +54,13 @@ bool UMainMenu::Initialize() {
 
 	// ToDo : SetUp
 	if (!ensure(HostBtn != nullptr)) return false;
-	HostBtn->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
+	HostBtn->OnClicked.AddDynamic(this, &UMainMenu::OpenHostMenu);
+
+	if (!ensure(HostMenu_HostBtn != nullptr)) return false;
+	HostMenu_HostBtn->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
+
+	if (!ensure(HostMenu_CancelBtn != nullptr)) return false;
+	HostMenu_CancelBtn->OnClicked.AddDynamic(this, &UMainMenu::MenuCancel);
 
 	if (!ensure(JoinBtn != nullptr)) return false;
 	JoinBtn->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
@@ -60,7 +69,7 @@ bool UMainMenu::Initialize() {
 	JoinMenu_JoinBtn->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
 
 	if (!ensure(JoinMenu_CancelBtn != nullptr)) return false;
-	JoinMenu_CancelBtn->OnClicked.AddDynamic(this, &UMainMenu::JoinMenuCancel);
+	JoinMenu_CancelBtn->OnClicked.AddDynamic(this, &UMainMenu::MenuCancel);
 
 	if (!ensure(ExitBtn != nullptr)) return false;
 	ExitBtn->OnClicked.AddDynamic(this, &UMainMenu::ExitGame);
@@ -68,11 +77,19 @@ bool UMainMenu::Initialize() {
 	return true;
 }
 
+void UMainMenu::OpenHostMenu()
+{
+	if (!ensure(MenuSwitcher != nullptr)) return;
+	if (!ensure(JoinMenu != nullptr)) return;
+
+	MenuSwitcher->SetActiveWidget(HostMenu);
+}
+
 void UMainMenu::HostServer()
 {
 	if (MenuInterface != nullptr) {
 		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, FString::Printf(TEXT("MainMenu.cpp -> HostServer() -> Called Message")));
-		MenuInterface->HostServer(); // 순수가상함수 호출! 해당 함수는 어디서 구현되어 있을까?
+		MenuInterface->HostServer("Test"); // 순수가상함수 호출! 해당 함수는 어디서 구현되어 있을까?
 		if (MenuInterface->CallBackBool(false)) {
 			// 만약 HostServer함수를 통해 CreateOnlineSession이 되었다면 false값은 true로 바뀌어 반환된다. 아니면 false 그대로 반환.
 			TearDown();
@@ -106,7 +123,7 @@ void UMainMenu::JoinServer()
 	return;
 }
 
-void UMainMenu::JoinMenuCancel()
+void UMainMenu::MenuCancel()
 {
 	if (!ensure(MenuSwitcher != nullptr)) return;
 	if (!ensure(MainMenu != nullptr)) return;

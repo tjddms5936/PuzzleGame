@@ -25,7 +25,7 @@ class PUZZLEGAME_API UPuzzlePlatformGameInstance : public UGameInstance, public 
 	void LoadMenu();
 
 	UFUNCTION(Exec, BlueprintCallable) // Exec : 이 기능은 게임 내 콘솔에서 실행할 수 있습니다. Exec 명령은 특정 클래스 내에서 선언된 경우에만 작동합니다.
-	void HostServer();
+	void HostServer(FString ServerName);
 
 	UFUNCTION(Exec, BlueprintCallable)
 	void Join(int index);
@@ -51,6 +51,8 @@ private:
 	TSubclassOf<class UUserWidget> CancelMenuClass;
 
 	class UMainMenu* MainMenu;
+
+	FString DesiredServerName;
 
 
 	// ==================== 온라인 세션 관련 =======================
