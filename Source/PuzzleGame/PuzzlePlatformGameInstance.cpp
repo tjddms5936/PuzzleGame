@@ -115,10 +115,10 @@ void UPuzzlePlatformGameInstance::OnFindSessionComplete(bool Success)
 		Data.HostUserName = Result.Session.OwningUserName;
 		FString StringData;
 		if (Result.Session.SessionSettings.Get(SERVER_NAME_SETTINGS_KEY, StringData)) {
-			Data.HostUserName = StringData;
+			Data.ServerName = StringData;
 		}
 		else {
-			Data.HostUserName = FString("Default Server Name");
+			Data.ServerName = FString("Default Server Name");
 		}
 		ServerDataes.Add(Data);
 	}

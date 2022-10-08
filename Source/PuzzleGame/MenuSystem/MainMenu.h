@@ -69,6 +69,9 @@ private:
 	class UButton* HostMenu_HostBtn;
 
 	UPROPERTY(meta = (BindWidget))
+	class UEditableText* ServerNameInput;
+
+	UPROPERTY(meta = (BindWidget))
 	class UButton* HostMenu_CancelBtn;
 
 	UPROPERTY(meta = (BindWidget))

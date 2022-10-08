@@ -88,8 +88,11 @@ void UMainMenu::OpenHostMenu()
 void UMainMenu::HostServer()
 {
 	if (MenuInterface != nullptr) {
-		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, FString::Printf(TEXT("MainMenu.cpp -> HostServer() -> Called Message")));
-		MenuInterface->HostServer("Test"); // 순수가상함수 호출! 해당 함수는 어디서 구현되어 있을까?
+		if (ServerNameInput == nullptr) return;
+
+		FString ServerName = ServerNameInput->GetText().ToString();
+
+		MenuInterface->HostServer(ServerName); // 순수가상함수 호출! 해당 함수는 어디서 구현되어 있을까?
 		if (MenuInterface->CallBackBool(false)) {
 			// 만약 HostServer함수를 통해 CreateOnlineSession이 되었다면 false값은 true로 바뀌어 반환된다. 아니면 false 그대로 반환.
 			TearDown();
