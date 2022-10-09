@@ -17,6 +17,7 @@ class PUZZLEGAME_API UPuzzlePlatformGameInstance : public UGameInstance, public 
 {
 	GENERATED_BODY()
 
+public:
 	UPuzzlePlatformGameInstance(const FObjectInitializer& ObjectInitializer);
 
 	virtual void Init(); // BeginPlay ´À³¦
@@ -45,6 +46,9 @@ class PUZZLEGAME_API UPuzzlePlatformGameInstance : public UGameInstance, public 
 	UFUNCTION(Exec, BlueprintCallable)
 	bool CallBackBool(bool input);
 
+	UFUNCTION()
+	void StartSession();
+
 private:
 	TSubclassOf<class UUserWidget> MenuClass;
 
@@ -70,7 +74,10 @@ private:
 
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
+	void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString = TEXT(""));
+
 	void CreateSession();
+
 
 	bool For_CallBackBool = false;
 

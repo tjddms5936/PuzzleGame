@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "PuzzlePlatformGameInstance.h"
@@ -12,7 +12,7 @@
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
 
-const static FName SESSION_NAME = TEXT("My session game");
+const static FName SESSION_NAME = FName("GameSession");
 const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 UPuzzlePlatformGameInstance::UPuzzlePlatformGameInstance(const FObjectInitializer& ObjectInitializer) 
@@ -49,7 +49,9 @@ void UPuzzlePlatformGameInstance::Init()
 	else {
 		// UE_LOG(LogTemp, Warning, TEXT("Found Failed OnlineSubsystem"));
 	}
-	
+	if (GEngine) {
+		GEngine->OnNetworkFailure().AddUObject(this, &UPuzzlePlatformGameInstance::OnNetworkFailure);
+	}
 }
 
 void UPuzzlePlatformGameInstance::LoadMenu()
@@ -69,11 +71,11 @@ void UPuzzlePlatformGameInstance::HostServer(FString ServerName)
 	if (SessionInterface.IsValid()) {
 		auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
 		if (ExistingSession != nullptr) {
-			// ÀÌ¹Ì Á¸ÀçÇÏ´Â SessionÀÌ ÀÖ´Ù¸é
+			// ì´ë¯¸ ì¡´ìž¬í•˜ëŠ” Sessionì´ ìžˆë‹¤ë©´
 			SessionInterface->DestroySession(SESSION_NAME);
 		}
 		else {
-			// Á¸ÀçÇÏ´Â SessionÀÌ ¾ø´Ù¸é
+			// ì¡´ìž¬í•˜ëŠ” Sessionì´ ì—†ë‹¤ë©´
 			CreateSession();
 		}
 	}
@@ -84,12 +86,12 @@ void UPuzzlePlatformGameInstance::OnCreateSessionComplete(FName SessionName, boo
 	if (!Success) return;
 
 	For_CallBackBool = true;
-	// GetEngine() : GameInstance¸¸ÀÇ ¸Þ¼­µå. 
+	// GetEngine() : GameInstanceë§Œì˜ ë©”ì„œë“œ. 
 	GEngine->AddOnScreenDebugMessage(1, 10, FColor::Green, TEXT("Hosting"));
 	
 	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr)) return;
-	World->ServerTravel("/Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap?listen");
+	World->ServerTravel("/Game/Maps/Lobby?listen");
 }
 
 void UPuzzlePlatformGameInstance::OnDestroySessionComplete(FName SessionName, bool Success)
@@ -110,8 +112,8 @@ void UPuzzlePlatformGameInstance::OnFindSessionComplete(bool Success)
 		UE_LOG(LogTemp, Warning, TEXT("Found Session Name : %s"), *Result.GetSessionIdStr());
 		FServerData Data;
 		Data.ServerName = Result.GetSessionIdStr();
-		Data.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections; // CreateSession()¿¡¼­ ¼³Á¤ ÇÑ MaxPlayer ¼ö
-		Data.CurrenctPlayers = Data.MaxPlayers - Result.Session.NumOpenPublicConnections; // ÇöÀç ¿¬°áµÇ¾îÀÖ´Â ÇÃ·¹ÀÌ¾î ¼ö
+		Data.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections; // CreateSession()ì—ì„œ ì„¤ì • í•œ MaxPlayer ìˆ˜
+		Data.CurrenctPlayers = Data.MaxPlayers - Result.Session.NumOpenPublicConnections; // í˜„ìž¬ ì—°ê²°ë˜ì–´ìžˆëŠ” í”Œë ˆì´ì–´ ìˆ˜
 		Data.HostUserName = Result.Session.OwningUserName;
 		FString StringData;
 		if (Result.Session.SessionSettings.Get(SERVER_NAME_SETTINGS_KEY, StringData)) {
@@ -143,50 +145,62 @@ void UPuzzlePlatformGameInstance::OnJoinSessionComplete(FName SessionName, EOnJo
 	
 }
 
+void UPuzzlePlatformGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
+{
+	LoadMenu();
+}
+
 
 void UPuzzlePlatformGameInstance::CreateSession()
 {
 	if (SessionInterface.IsValid()) {
 		FOnlineSessionSettings SessionSetting;
 		if (IOnlineSubsystem::Get()->GetSubsystemName() == "NULL") {
-			SessionSetting.bIsLANMatch = true; // ÀÌ °ÔÀÓÀº LAN Àü¿ëÀÌ¸ç ¿ÜºÎ ÇÃ·¹ÀÌ¾î¿¡°Ô Ç¥½ÃµÇÁö ¾Ê½À´Ï´Ù.
+			SessionSetting.bIsLANMatch = true; // ì´ ê²Œìž„ì€ LAN ì „ìš©ì´ë©° ì™¸ë¶€ í”Œë ˆì´ì–´ì—ê²Œ í‘œì‹œë˜ì§€ ì•ŠìŠµë‹ˆë‹¤.
 		}
 		else {
 			SessionSetting.bIsLANMatch = false;
 		}
-		// ¾Æ·¡ 3°³ÀÇ ÀÛ¾÷À» ÇØÁÖÁö ¾ÊÀ¸¸é Ã£À» ¼ö ÀÖ´Â ¼¼¼ÇÀº 0°³°¡ µÉ °ÍÀÌ´Ù. (bIsLANMatch, NumPublicConnections, bShouldAdvertise)
-		SessionSetting.NumPublicConnections = 2; // °øÁöµÈ °ø°³ÀûÀ¸·Î »ç¿ë °¡´ÉÇÑ ¿¬°á ¼ö  // NumPrivateConnections : ºñ°ø°³(ÃÊ´ë/ºñ¹Ð¹øÈ£) Àü¿ë ¿¬°á ¼ö
-		SessionSetting.bShouldAdvertise = true; // ¿Â¶óÀÎ¿¡¼­ ¼¼¼ÇÀ» º¼ ¼ö ÀÖµµ·Ï ÇÏ´Âµ¥, ÀÌ´Â Ä£±¸µé¿¡°Ô ¸ÂÃã ÃÊ´ëÀåÀ» º¸³»´Â °ÍÀ» ±¤°í¸¦ ÅëÇØ ¿ìÈ¸°¡´É
-		// ¼¼¼Ç Ã£±â¸¦ È£Ãâ ÇÒ ¶§ÀÇ Äõ¸® ¸Å°³º¯¼ö¸¦ »ìÆìº¸ÀÚ -> Go to Init() ¿¡¼­ SessionSearchºÎºÐ º¸±â
-		SessionSetting.bUsesPresence = true; // Lobby·Î Á¶ÀÎÇÏ±â À§ÇÑ Á¶°Ç
-		SessionSetting.bUseLobbiesIfAvailable = true; // Lobby·Î CreateSessionÀ» ÇÏ±â À§ÇÑ Á¶°Ç
+		// ì•„ëž˜ 3ê°œì˜ ìž‘ì—…ì„ í•´ì£¼ì§€ ì•Šìœ¼ë©´ ì°¾ì„ ìˆ˜ ìžˆëŠ” ì„¸ì…˜ì€ 0ê°œê°€ ë  ê²ƒì´ë‹¤. (bIsLANMatch, NumPublicConnections, bShouldAdvertise)
+		SessionSetting.NumPublicConnections = 5; // ê³µì§€ëœ ê³µê°œì ìœ¼ë¡œ ì‚¬ìš© ê°€ëŠ¥í•œ ì—°ê²° ìˆ˜  // NumPrivateConnections : ë¹„ê³µê°œ(ì´ˆëŒ€/ë¹„ë°€ë²ˆí˜¸) ì „ìš© ì—°ê²° ìˆ˜
+		SessionSetting.bShouldAdvertise = true; // ì˜¨ë¼ì¸ì—ì„œ ì„¸ì…˜ì„ ë³¼ ìˆ˜ ìžˆë„ë¡ í•˜ëŠ”ë°, ì´ëŠ” ì¹œêµ¬ë“¤ì—ê²Œ ë§žì¶¤ ì´ˆëŒ€ìž¥ì„ ë³´ë‚´ëŠ” ê²ƒì„ ê´‘ê³ ë¥¼ í†µí•´ ìš°íšŒê°€ëŠ¥
+		// ì„¸ì…˜ ì°¾ê¸°ë¥¼ í˜¸ì¶œ í•  ë•Œì˜ ì¿¼ë¦¬ ë§¤ê°œë³€ìˆ˜ë¥¼ ì‚´íŽ´ë³´ìž -> Go to Init() ì—ì„œ SessionSearchë¶€ë¶„ ë³´ê¸°
+		SessionSetting.bUsesPresence = true; // Lobbyë¡œ ì¡°ì¸í•˜ê¸° ìœ„í•œ ì¡°ê±´
+		SessionSetting.bUseLobbiesIfAvailable = true; // Lobbyë¡œ CreateSessionì„ í•˜ê¸° ìœ„í•œ ì¡°ê±´
 		SessionSetting.Set(SERVER_NAME_SETTINGS_KEY, DesiredServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSetting);
 	}
 }
 
+void UPuzzlePlatformGameInstance::StartSession()
+{
+	if (SessionInterface != nullptr) {
+		SessionInterface->StartSession(SESSION_NAME);
+	}
+}
+
 void UPuzzlePlatformGameInstance::ServerListRefresh()
 {
-	// ¡Ø new Å°¿öµå´Â Èü¿¡ ¹«¾ð°¡¸¦ ¸¸µç´Ù.
-	SessionSearchPtr = MakeShareable(new FOnlineSessionSearch()); // TSharedPtr À» ¾ò°í
+	// â€» new í‚¤ì›Œë“œëŠ” íž™ì— ë¬´ì–¸ê°€ë¥¼ ë§Œë“ ë‹¤.
+	SessionSearchPtr = MakeShareable(new FOnlineSessionSearch()); // TSharedPtr ì„ ì–»ê³ 
 	if (SessionSearchPtr.IsValid()) {
 		UE_LOG(LogTemp, Warning, TEXT("Find Session Start"));
 
-		SessionSearchPtr->bIsLanQuery = false; // Äõ¸®°¡ LAN ÀÏÄ¡¸¦ À§ÇÑ °ÍÀÎÁö ¿©ºÎ.
+		SessionSearchPtr->bIsLanQuery = false; // ì¿¼ë¦¬ê°€ LAN ì¼ì¹˜ë¥¼ ìœ„í•œ ê²ƒì¸ì§€ ì—¬ë¶€.
 	   /*
-		false·Î ÇØµµ ¹®Á¦´Â ¾øÀ½ why?  Äõ¸® ¼³Á¤¸¸ Á¦°ÅÇÏ´Â°Ç
-	   // LanÀÏÄ¡¿Í Non-Lan ÀÏÄ¡¸¦ ¸ðµÎ Ã£À» °ÍÀÌ±â ¶§¹®ÀÌ´Ù.
+		falseë¡œ í•´ë„ ë¬¸ì œëŠ” ì—†ìŒ why?  ì¿¼ë¦¬ ì„¤ì •ë§Œ ì œê±°í•˜ëŠ”ê±´
+	   // Lanì¼ì¹˜ì™€ Non-Lan ì¼ì¹˜ë¥¼ ëª¨ë‘ ì°¾ì„ ê²ƒì´ê¸° ë•Œë¬¸ì´ë‹¤.
 	   */
 
 	   /*
-	   SessionSearchPtr->QuerySettings.Set(~~)// Steam ¾òÀ» ¶§ »ç¿ëÇÒ °ÍÀÓ.
-	   ¾ÆÀÌµð¾î´Â QuerySettings°¡ FOnlineSessionSearchÀÇ API¿¡ ÀÇÇØ Á¤ÀÇµÇ´Â °ÍÀÌ ¾Æ´Ï¶ó, »ç¿ë ÁßÀÎ API¿¡ ÀÇÇØ Á¤ÀÇµÈ´Ù´Â °ÍÀÌ´Ù.
+	   SessionSearchPtr->QuerySettings.Set(~~)// Steam ì–»ì„ ë•Œ ì‚¬ìš©í•  ê²ƒìž„.
+	   ì•„ì´ë””ì–´ëŠ” QuerySettingsê°€ FOnlineSessionSearchì˜ APIì— ì˜í•´ ì •ì˜ë˜ëŠ” ê²ƒì´ ì•„ë‹ˆë¼, ì‚¬ìš© ì¤‘ì¸ APIì— ì˜í•´ ì •ì˜ëœë‹¤ëŠ” ê²ƒì´ë‹¤.
 	   */
 
-	   // TSharedRef·Î º¯È¯ÇØÁÖ°í ¸Å°³º¯¼ö¿¡ ³Ö¾î¾ßÇÔ
+	   // TSharedRefë¡œ ë³€í™˜í•´ì£¼ê³  ë§¤ê°œë³€ìˆ˜ì— ë„£ì–´ì•¼í•¨
 	
-		// SetÇÔ¼ö : SEARCH_PRESENCE(key)¸¦ true(value)·Î ¼³Á¤.
-		SessionSearchPtr->MaxSearchResults = 100; // Defaults°ªÀÌ ¾ø¾î¼­ ¼³Á¤ÇÏÁö ¾ÊÀ¸¸é ÀÚ½ÅÀÇ °ÔÀÓÀº Ã£À» ¼ö°¡ ¾øÀ½
+		// Setí•¨ìˆ˜ : SEARCH_PRESENCE(key)ë¥¼ true(value)ë¡œ ì„¤ì •.
+		SessionSearchPtr->MaxSearchResults = 100; // Defaultsê°’ì´ ì—†ì–´ì„œ ì„¤ì •í•˜ì§€ ì•Šìœ¼ë©´ ìžì‹ ì˜ ê²Œìž„ì€ ì°¾ì„ ìˆ˜ê°€ ì—†ìŒ
 		SessionSearchPtr->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 		bool testing = false;
 		if (SessionSearchPtr->QuerySettings.Get(SEARCH_PRESENCE, testing) && testing) {
@@ -244,7 +258,7 @@ void UPuzzlePlatformGameInstance::ExitGameFunc()
 	APlayerController* Controller = World->GetFirstPlayerController();
 	if (!ensure(Controller != nullptr)) return;
 
-	// °ÔÀÓ ½ÇÇà ÈÄ ÄÜ¼ÖÃ¢¿¡ quitÇÏ¸é °ÔÀÓÀÌ ²¨Áø´Ù. ±×°É C++·Î ±¸Çö
+	// ê²Œìž„ ì‹¤í–‰ í›„ ì½˜ì†”ì°½ì— quití•˜ë©´ ê²Œìž„ì´ êº¼ì§„ë‹¤. ê·¸ê±¸ C++ë¡œ êµ¬í˜„
 	Controller->ConsoleCommand(FString("quit"));
 }
 
