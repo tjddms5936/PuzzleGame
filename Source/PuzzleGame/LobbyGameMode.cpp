@@ -8,8 +8,8 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 	++NumberOfPlayers;
-	if (NumberOfPlayers >= 3) {
-		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Red, FString::Printf(TEXT("Reached 3 players!")));
+	if (NumberOfPlayers >= 2) {
+		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Red, FString::Printf(TEXT("Reached 2 players!")));
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ALobbyGameMode::StartGame, 5);
 	}
 }

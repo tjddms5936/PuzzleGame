@@ -12,7 +12,7 @@
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
 
-const static FName SESSION_NAME = FName("GameSession");
+const static FName SESSION_NAME = FName("GameSession2");
 const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 UPuzzlePlatformGameInstance::UPuzzlePlatformGameInstance(const FObjectInitializer& ObjectInitializer) 
@@ -76,6 +76,9 @@ void UPuzzlePlatformGameInstance::HostServer(FString ServerName)
 		}
 		else {
 			// 존재하는 Session이 없다면
+			if (MainMenu) {
+				MainMenu->TearDown();
+			}
 			CreateSession();
 		}
 	}
